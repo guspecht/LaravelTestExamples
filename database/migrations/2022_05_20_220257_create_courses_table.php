@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->string('description')->nullable();
+            $table->timestamp('expire_date');
             $table->timestamps();
         });
     }

@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Course;
+use Carbon\Carbon;
 
 class User extends Authenticatable
 {
@@ -55,7 +56,7 @@ class User extends Authenticatable
 
     public function subscribeToCourse(Course $course)
     {
-        if(!$this->courses->contains('id', $course->id)){
+        if(!($this->courses->contains('id', $course->id)) && !(Carbon::now()->gt($course->expire_date))){
             return $this->courses()->attach($course);
         }
     }

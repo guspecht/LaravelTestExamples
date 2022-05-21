@@ -10,13 +10,13 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Carbon\Carbon;
 
 class UsersTest extends TestCase
 {
     // https://github.com/fzaninotto/Faker
     // It will migrate the database run the tests and then refresh te database.
     use DatabaseMigrations;
-
 
     public function test_it_subscribes_to_a_course_and_notification()
     {
@@ -52,18 +52,28 @@ class UsersTest extends TestCase
 
     public function test_it_does_not_allow_a_user_to_subscribe_again()
     {
-        Notification::fake();
-
         $user = User::factory()->create();
         $course = Course::factory()->create();
         $user->subscribeToCourse($course);
 
         $user->refresh();
 
-        $response = $this->actingAs($user)
-            ->post(route('courses.subscribe', $course));
-        $user->refresh();
+        $user->subscribeToCourse($course);
 
         $this->assertEquals(1, $user->courses()->count());
     }
+
+    public function test_it_does_not_allow_a_user_to_subscribe_to_a_expired_course()
+    {
+        $user = User::factory()->create();
+        $course = Course::factory()->create();
+        $course->expire_date = Carbon::now()->subDays(200);
+        $course->save();
+        $course->refresh();
+        $this->assertEquals(0, $user->courses()->count());
+        $user->subscribeToCourse($course);
+        $this->assertEquals(0, $user->courses()->count());
+    }
+
+
 }
